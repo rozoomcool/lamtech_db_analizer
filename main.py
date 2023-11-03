@@ -1,30 +1,51 @@
 from aiogram import Bot, Dispatcher, executor, types
 import psycopg2
 
-conn = psycopg2.connect(
-    host="81.200.153.13",
-    database="default_db",
-    user="gen_user",
-    password="NNAPX*N-0{BQOX"
-)
-
-print(conn)
-
 import config
 
 
 bot = Bot(token=config.TOKEN)
 dp = Dispatcher(bot)
 
+keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
+keyboard.add(
+    types.InlineKeyboardButton(text='Проверить работу сервера'),
+    types.InlineKeyboardButton(text='Кто такой Росул?')
+)
+
 
 @dp.message_handler(commands=['start'])
 async def send_welcome(message: types.Message):
-    await message.reply("Привет! Я твой бот на aiogram.")
+    await message.reply("Привет! Я твой бот на aiogram.", reply_markup=keyboard)
 
 
 @dp.message_handler(commands=['help'])
 async def send_help(message: types.Message):
-    await message.reply("Список команд: /start, /help")
+    await message.reply("Список команд: /start, /help", reply_markup=keyboard)
+
+
+@dp.message_handler(commands=['check'])
+async def check_bd(message: types.Message):
+    try:
+        conn = psycopg2.connect(
+            host="81.200.153.13",
+            database="default_db",
+            user="gen_user",
+            password="NNAPX*N-0{BQOX"
+        )
+        await message.answer("Сервер работает в штатном режиме", reply_markup=keyboard)
+    except Exception as e:
+        await message.answer("База данных не работает", reply_markup=keyboard)
+
+
+@dp.message_handler(lambda message: message.text == 'Проверить работу сервера')
+async def send_welcome(message: types.Message):
+    await check_bd(message)
+
+
+@dp.message_handler(lambda message: message.text == 'Кто такой Росул?')
+async def send_welcome(message: types.Message):
+    await message.reply("Росул это самый настоящий НЕДОПРОГГЕР", reply_markup=keyboard)
 
 
 @dp.message_handler()
