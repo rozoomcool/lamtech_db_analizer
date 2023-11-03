@@ -32,13 +32,15 @@ async def send_help(message: types.Message):
 async def check_bd(message: types.Message):
     try:
         conn = psycopg2.connect(
-            host="81.200.153.13",
-            database="default_db",
-            user="gen_user",
-            password="NNAPX*N-0{BQOX"
+            host="5.53.124.214",
+            port = "5432",
+            database="lamtech_db",
+            user="postgres",
+            password="root"
         )
         await message.answer("Сервер работает в штатном режиме", reply_markup=keyboard)
     except Exception as e:
+        print(e)
         await message.answer("База данных не работает", reply_markup=keyboard)
 
 
@@ -68,4 +70,5 @@ async def echo(message: types.Message):
 
 
 if __name__ == '__main__':
+
     executor.start_polling(dp, skip_updates=True)
