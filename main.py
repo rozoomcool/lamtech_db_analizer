@@ -2,6 +2,7 @@ from aiogram import Bot, Dispatcher, executor, types
 import psycopg2
 import db
 import users
+import dbscript
 
 import config
 
@@ -68,7 +69,15 @@ async def echo(message: types.Message):
 
     await message.answer(message.text)
 
+async def db_ok():
+    await bot.send_message("База данных работает отлично")
+
+
+async def db_failed():
+    await bot.send_message("Внимание сука! Произошел сбой в работе базы данных:", e)
+
 
 if __name__ == '__main__':
-    dp.loop.create_task(check_bd())
+    #dp.loop.create_task(check_bd())
+    dbscript.checking_db(db_ok, db_failed)
     executor.start_polling(dp, skip_updates=True)

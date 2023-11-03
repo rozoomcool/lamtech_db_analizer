@@ -2,9 +2,11 @@ import time
 
 import asyncpg
 
-async def checking_db():
+async def checking_db(on_ok, on_failed):
+    print('start checking')
     while True:
-        await sleep(1000 * 60)
+        await sleep(2)
+        print('cheeeck')
         await check_db()
 
         async def check_db():
@@ -19,10 +21,13 @@ async def checking_db():
 
                 await conn.executed("SELECT * FROM pg_stat_activity;")
                 await conn.close()
-                await bot.send_message("База данных работает отлично")
+
+                await on_ok()
+                # await bot.send_message("База данных работает отлично")
 
             except (asyncpg.PostgresError, ConnectionError) as e:
-                await bot.send_message("Произошел сбой в работе базы данных:", e)
+                await on_failed()
+                # await bot.send_message("Произошел сбой в работе базы данных:", e)
 
 
 def status(update,  context):
