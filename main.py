@@ -10,9 +10,10 @@ conn = psycopg2.connect(
 
 print(conn)
 
-API_TOKEN = '6526338938:AAH5fJNLx3iqWqfjwv3z6dF7KREmy1fmOEU'
+import config
 
-bot = Bot(token=API_TOKEN)
+
+bot = Bot(token=config.TOKEN)
 dp = Dispatcher(bot)
 
 
@@ -30,6 +31,6 @@ async def send_help(message: types.Message):
 async def echo(message: types.Message):
     await message.answer(message.text)
 
-# Запускаем бота
+
 if __name__ == '__main__':
     executor.start_polling(dp, skip_updates=True)
