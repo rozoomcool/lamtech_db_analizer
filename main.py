@@ -19,6 +19,11 @@ async def send_help(message: types.Message):
 
 @dp.message_handler()
 async def echo(message: types.Message):
+
+    if 'росул' in message.text.lower():
+        await message.answer('Понятно, недопроггер значит.')
+        return
+
     await message.answer(message.text)
 
 
