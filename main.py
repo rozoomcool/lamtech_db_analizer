@@ -1,4 +1,14 @@
 from aiogram import Bot, Dispatcher, executor, types
+import psycopg2
+
+conn = psycopg2.connect(
+    host="81.200.153.13",
+    database="default_db",
+    user="gen_user",
+    password="NNAPX*N-0{BQOX"
+)
+
+print(conn)
 
 API_TOKEN = '6526338938:AAH5fJNLx3iqWqfjwv3z6dF7KREmy1fmOEU'
 
