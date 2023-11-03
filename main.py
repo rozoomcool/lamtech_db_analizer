@@ -10,7 +10,7 @@ dp = Dispatcher(bot)
 keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
 keyboard.add(
     types.InlineKeyboardButton(text='Проверить работу сервера'),
-    types.InlineKeyboardButton(text='Кто такой Росул?')
+    # types.InlineKeyboardButton(text='Кто такой Росул?')
 )
 
 
@@ -28,13 +28,15 @@ async def send_help(message: types.Message):
 async def check_bd(message: types.Message):
     try:
         conn = psycopg2.connect(
-            host="81.200.153.13",
-            database="default_db",
-            user="gen_user",
-            password="NNAPX*N-0{BQOX"
+            host="5.53.124.214",
+            port = "5432",
+            database="lamtech_db",
+            user="postgres",
+            password="root"
         )
         await message.answer("Сервер работает в штатном режиме", reply_markup=keyboard)
     except Exception as e:
+        print(e)
         await message.answer("База данных не работает", reply_markup=keyboard)
 
 
@@ -43,9 +45,9 @@ async def send_welcome(message: types.Message):
     await check_bd(message)
 
 
-@dp.message_handler(lambda message: message.text == 'Кто такой Росул?')
-async def send_welcome(message: types.Message):
-    await message.reply("Росул это самый настоящий НЕДОПРОГГЕР", reply_markup=keyboard)
+# @dp.message_handler(lambda message: message.text == 'Кто такой Росул?')
+# async def send_welcome(message: types.Message):
+#     await message.reply("Росул это самый настоящий НЕДОПРОГГЕР", reply_markup=keyboard)
 
 
 @dp.message_handler()
