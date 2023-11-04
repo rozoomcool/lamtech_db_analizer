@@ -7,6 +7,7 @@ import users
 import dbscript
 import psutil
 from dotenv import dotenv_values
+import bench_requests
 
 config = dotenv_values(".env")
 
@@ -17,7 +18,7 @@ keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
 keyboard.add(
     types.InlineKeyboardButton(text='Проверить работу сервера'),
     types.InlineKeyboardButton(text='Информация о системе'),
-    types.InlineKeyboardButton(text='Статистика запросов'),
+    types.InlineKeyboardButton(text='Перезагрузить БД'),
     types.InlineKeyboardButton(text='Вывод логов'),
     types.InlineKeyboardButton(text='Легкое тестирование'),
     types.InlineKeyboardButton(text='Тяжелое тестирование'),
@@ -49,7 +50,7 @@ async def check_bd(message: types.Message):
         await message.answer("Сервер работает в штатном режиме", reply_markup=keyboard)
     except Exception as e:
         print(e)
-        await message.answer("База данных не работает", reply_markup=keyboard)
+        await message.answer("База данных не отвечает", reply_markup=keyboard)
 
 
 @dp.message_handler(lambda message: message.text == 'Проверить работу сервера')
@@ -57,9 +58,13 @@ async def send_welcome(message: types.Message):
     await check_bd(message)
 
 
-@dp.message_handler(lambda message: message.text == 'Статистика запросов')
-async def send_welcome(message: types.Message):
-    await users.send_message(bot, 'Статистика')
+@dp.message_handler(lambda message: message.text == 'Перезагрузить БД')
+async def restart_db_btn(message: types.Message):
+    await users.send_message(bot, 'БД перезагружается, ждите')
+    if(bench_requests.restart_db() != 200):
+        await users.send_message(bot, 'Произошла непредвиденная ошибка')
+    else:
+        await users.send_message(bot, 'БД перезагружена')
 
 
 @dp.message_handler(lambda message: message.text == 'Информация о системе')
@@ -81,23 +86,40 @@ async def send_welcome(message: types.Message):
 
 
 @dp.message_handler(lambda message: message.text == 'Вывод логов')
-async def logs(message: types.Message):
+async def logs_btn(message: types.Message):
     await message.answer('logs')
 
 
 @dp.message_handler(lambda message: message.text == 'Легкое тестирование')
-async def easy_test(message: types.Message):
-    await message.answer('easy_test')
+async def easy_test_btn(message: types.Message):
+    await message.answer('Начинаю легкий тест...')
+    data = bench_requests.easy_test()
+    if(data['status'] != 200):
+        await message.answer('Произошла непредвиденная ошибка')
+    else:
+        await message.answer('Легкое тестирование прошло успешно')
+        await message.answer(data['body'])
 
 
 @dp.message_handler(lambda message: message.text == 'Тяжелое тестирование')
-async def hard_test(message: types.Message):
-    await message.answer('hard_test')
+async def hard_test_btn(message: types.Message):
+    await message.answer('Начинаю тяжелый тест...')
+    data = bench_requests.hard_test()
+    if(data['status'] != 200):
+        await message.answer('Тест провален')
+    else:
+        await message.answer('Тяжелое тестирование прошло успешно')
+        await message.answer(data['body'])
 
 
 @dp.message_handler(lambda message: message.text == 'Реально крашнуть базу данных!')
-async def crush_db(message: types.Message):
-    await message.answer('crush_db')
+async def crush_btn(message: types.Message):
+    await message.answer('Убиваем БД, ждите')
+    if(bench_requests.crush_db() != 200):
+        await message.answer('Произошла непредвиденная ошибка')
+    else:
+        await message.answer('БД убита')
+
 
 
 @dp.message_handler()
