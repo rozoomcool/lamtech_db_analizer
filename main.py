@@ -5,7 +5,6 @@ import psycopg2
 import db
 import users
 import dbscript
-import os
 import psutil
 from dotenv import dotenv_values
 
