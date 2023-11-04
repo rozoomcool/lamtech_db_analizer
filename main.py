@@ -7,13 +7,11 @@ import users
 import dbscript
 import os
 import psutil
-from dotenv import load_dotenv
+from dotenv import dotenv_values
 
-dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
-if os.path.exists(dotenv_path):
-    load_dotenv(dotenv_path)
+config = dotenv_values(".env")
 
-bot = Bot(token=os.getenv('TOKEN'))
+bot = Bot(token=config['TOKEN'])
 dp = Dispatcher(bot)
 
 keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -31,7 +29,7 @@ keyboard.add(
 @dp.message_handler(commands=['start'])
 async def send_welcome(message: types.Message):
     db.create_user(message.from_user.id)
-    await message.reply("Привет! Я твой бот на aiogram.", reply_markup=keyboard)
+    await message.reply("Добро пожаловать.", reply_markup=keyboard)
 
 
 @dp.message_handler(commands=['help'])
@@ -109,7 +107,7 @@ async def echo(message: types.Message):
 
 
 async def db_ok():
-    await users.send_message(bot, 'База данных работает нормально')
+    await users.send_message(bot, 'База данных работает в штатном режиме')
 
 
 async def db_failed():

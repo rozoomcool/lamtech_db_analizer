@@ -1,15 +1,19 @@
 from time import sleep
+from dotenv import dotenv_values
+import os
 
 import asyncpg
+
+config = dotenv_values(".env")
 
 async def check_db(on_ok=None, on_failed=None):
     try:
         conn = await asyncpg.connect(
-            host="5.53.124.214",
-            port="5432",
-            database="lamtech_db",
-            user="postgres",
-            password="root"
+            host=config['HOST'],
+            port=config['PORT'],
+            database=config['DATABASE'],
+            user=config['USER'],
+            password=config['PASSWORD']
         )
 
         # await conn.executed("SELECT * FROM pg_stat_activity;")
