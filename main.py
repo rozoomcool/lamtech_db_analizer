@@ -1,21 +1,30 @@
+import asyncio
+
 from aiogram import Bot, Dispatcher, executor, types
 import psycopg2
 import db
 import users
 import dbscript
-from background_process import BackgroundProcess
+import os
+import psutil
+from dotenv import load_dotenv
 
-import config
+dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
+if os.path.exists(dotenv_path):
+    load_dotenv(dotenv_path)
 
-
-bot = Bot(token=config.TOKEN)
+bot = Bot(token=os.getenv('TOKEN'))
 dp = Dispatcher(bot)
 
 keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
 keyboard.add(
     types.InlineKeyboardButton(text='Проверить работу сервера'),
-    types.InlineKeyboardButton(text='Кто такой Росул?'),
-    types.InlineKeyboardButton(text='Послать всех')
+    types.InlineKeyboardButton(text='Информация о системе'),
+    types.InlineKeyboardButton(text='Статистика запросов'),
+    types.InlineKeyboardButton(text='Вывод логов'),
+    types.InlineKeyboardButton(text='Легкое тестирование'),
+    types.InlineKeyboardButton(text='Тяжелое тестирование'),
+    types.InlineKeyboardButton(text='Реально крашнуть базу данных!'),
 )
 
 
@@ -35,7 +44,7 @@ async def check_bd(message: types.Message):
     try:
         conn = psycopg2.connect(
             host="5.53.124.214",
-            port = "5432",
+            port="5432",
             database="lamtech_db",
             user="postgres",
             password="root"
@@ -51,34 +60,69 @@ async def send_welcome(message: types.Message):
     await check_bd(message)
 
 
-@dp.message_handler(lambda message: message.text == 'Послать всех')
+@dp.message_handler(lambda message: message.text == 'Статистика запросов')
 async def send_welcome(message: types.Message):
-    await users.send_message(bot, 'Идите наххуй')
+    await users.send_message(bot, 'Статистика')
 
 
-@dp.message_handler(lambda message: message.text == 'Кто такой Росул?')
+@dp.message_handler(lambda message: message.text == 'Информация о системе')
 async def send_welcome(message: types.Message):
-    await message.reply("Росул это самый настоящий НЕДОПРОГГЕР", reply_markup=keyboard)
+    cpu_usage = psutil.cpu_percent(interval=1)
+    memory = psutil.virtual_memory()
+    partitions = psutil.disk_partitions()
+    net_io = psutil.net_io_counters()
+
+    sys_message = f"Загрузка ЦПУ: {cpu_usage}% \n\n"
+    sys_message += f'Объем ОЗУ: {memory.total / (1024 ** 2):.2f} MB\nИспользуеммая память: {memory.used / (1024 ** 2):.2f} MB\nСвободная память: {memory.free / (1024 ** 2):.2f} MB\n\n'
+
+    for part in partitions:
+        usage = psutil.disk_usage(part.mountpoint)
+        sys_message += f'Раздел: {part.device}\n'
+        sys_message += f"\tОбъем: {usage.total / (1024 ** 3):.2f} GB\n\tИспользовано: {usage.used / (1024 ** 3):.2f} GB\n\tСвободно: {usage.free / (1024 ** 3):.2f} GB"
+
+    await message.answer(sys_message, reply_markup=keyboard)
+
+
+@dp.message_handler(lambda message: message.text == 'Вывод логов')
+async def logs(message: types.Message):
+    await message.answer('logs')
+
+
+@dp.message_handler(lambda message: message.text == 'Легкое тестирование')
+async def easy_test(message: types.Message):
+    await message.answer('easy_test')
+
+
+@dp.message_handler(lambda message: message.text == 'Тяжелое тестирование')
+async def hard_test(message: types.Message):
+    await message.answer('hard_test')
+
+
+@dp.message_handler(lambda message: message.text == 'Реально крашнуть базу данных!')
+async def crush_db(message: types.Message):
+    await message.answer('crush_db')
 
 
 @dp.message_handler()
 async def echo(message: types.Message):
-
-    if 'росул' in message.text.lower():
-        await message.answer('Понятно, недопроггер значит.')
-        return
-
     await message.answer(message.text)
 
 
 async def db_ok():
-    await bot.send_message("База данных работает отлично")
+    await users.send_message(bot, 'База данных работает нормально')
 
 
 async def db_failed():
-    await bot.send_message("Внимание сука! Произошел сбой в работе базы данных:")
+    await users.send_message(bot, 'Внимание! Произошел сбой в работе базы данных:')
+
+
+async def check_db_exec(_):
+    asyncio.create_task(dbscript.checking_db(db_ok, db_failed))
+
+
+def main():
+    executor.start_polling(dp, skip_updates=True, on_startup=check_db_exec)
 
 
 if __name__ == '__main__':
-    #dp.loop.create_task(check_bd())
-    executor.start_polling(dp, skip_updates=True)
+    main()
