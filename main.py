@@ -1,14 +1,18 @@
+import asyncio
+
 from aiogram import Bot, Dispatcher, executor, types
 import psycopg2
 import db
 import users
 import dbscript
-from background_process import BackgroundProcess
+import os
+from dotenv import load_dotenv
 
-import config
+dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
+if os.path.exists(dotenv_path):
+    load_dotenv(dotenv_path)
 
-
-bot = Bot(token=config.TOKEN)
+bot = Bot(token=os.getenv('TOKEN'))
 dp = Dispatcher(bot)
 
 keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -58,6 +62,7 @@ async def send_welcome(message: types.Message):
 
 @dp.message_handler(lambda message: message.text == 'Производительность')
 async def send_welcome(message: types.Message):
+    
     await message.reply("Быстро", reply_markup=keyboard)
 
 
@@ -67,21 +72,17 @@ async def echo(message: types.Message):
 
 
 async def db_ok():
-    await bot.send_message("База данных работает отлично")
+    await users.send_message(bot, 'OK')
 
 
 async def db_failed():
-    await bot.send_message("Внимание сука! Произошел сбой в работе базы данных:")
+    await users.send_message(bot, 'Внимание сука! Произошел сбой в работе базы данных:')
 
+async def check_db_exec(_):
+    asyncio.create_task(dbscript.checking_db(db_ok, db_failed))
 
-async def run():
-    executor.start_polling(dp, skip_updates=True)
-
-def run_db_checking():
-    dbscript.checking_db(db_ok, db_failed)
-
-
+def main():
+    executor.start_polling(dp, skip_updates=True, on_startup=check_db_exec)
 
 if __name__ == '__main__':
-    run_db_checking()
-    executor.start_polling(dp, skip_updates=True)
+    main()
