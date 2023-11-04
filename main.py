@@ -14,8 +14,8 @@ dp = Dispatcher(bot)
 keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
 keyboard.add(
     types.InlineKeyboardButton(text='Проверить работу сервера'),
-    types.InlineKeyboardButton(text='Кто такой Росул?'),
-    types.InlineKeyboardButton(text='Послать всех')
+    types.InlineKeyboardButton(text='Производительность'),
+    types.InlineKeyboardButton(text='Статистика запросов')
 )
 
 
@@ -51,23 +51,18 @@ async def send_welcome(message: types.Message):
     await check_bd(message)
 
 
-@dp.message_handler(lambda message: message.text == 'Послать всех')
+@dp.message_handler(lambda message: message.text == 'Статистика запросов')
 async def send_welcome(message: types.Message):
-    await users.send_message(bot, 'Идите наххуй')
+    await users.send_message(bot, 'Статистика')
 
 
-@dp.message_handler(lambda message: message.text == 'Кто такой Росул?')
+@dp.message_handler(lambda message: message.text == 'Производительность')
 async def send_welcome(message: types.Message):
-    await message.reply("Росул это самый настоящий НЕДОПРОГГЕР", reply_markup=keyboard)
+    await message.reply("Быстро", reply_markup=keyboard)
 
 
 @dp.message_handler()
 async def echo(message: types.Message):
-
-    if 'росул' in message.text.lower():
-        await message.answer('Понятно, недопроггер значит.')
-        return
-
     await message.answer(message.text)
 
 
@@ -79,6 +74,14 @@ async def db_failed():
     await bot.send_message("Внимание сука! Произошел сбой в работе базы данных:")
 
 
+async def run():
+    executor.start_polling(dp, skip_updates=True)
+
+def run_db_checking():
+    dbscript.checking_db(db_ok, db_failed)
+
+
+
 if __name__ == '__main__':
-    #dp.loop.create_task(check_bd())
+    run_db_checking()
     executor.start_polling(dp, skip_updates=True)
