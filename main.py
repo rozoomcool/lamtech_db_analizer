@@ -6,6 +6,7 @@ import db
 import users
 import dbscript
 import os
+import psutil
 from dotenv import load_dotenv
 
 dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
@@ -18,7 +19,7 @@ dp = Dispatcher(bot)
 keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
 keyboard.add(
     types.InlineKeyboardButton(text='Проверить работу сервера'),
-    types.InlineKeyboardButton(text='Производительность'),
+    types.InlineKeyboardButton(text='Информация о системе'),
     types.InlineKeyboardButton(text='Статистика запросов')
 )
 
@@ -60,10 +61,22 @@ async def send_welcome(message: types.Message):
     await users.send_message(bot, 'Статистика')
 
 
-@dp.message_handler(lambda message: message.text == 'Производительность')
+@dp.message_handler(lambda message: message.text == 'Информация о системе')
 async def send_welcome(message: types.Message):
-    
-    await message.reply("Быстро", reply_markup=keyboard)
+    cpu_usage = psutil.cpu_percent(interval=1)
+    memory = psutil.virtual_memory()
+    partitions = psutil.disk_partitions()
+    net_io = psutil.net_io_counters()
+
+    sys_message = f"Загрузка ЦПУ: {cpu_usage}% \n\n"
+    sys_message += f'Объем ОЗУ: {memory.total / (1024 ** 2):.2f} MB\nИспользуеммая память: {memory.used / (1024 ** 2):.2f} MB\nСвободная память: {memory.free / (1024 ** 2):.2f} MB\n\n'
+
+    for part in partitions:
+        usage = psutil.disk_usage(part.mountpoint)
+        sys_message += f'Раздел: {part.device}\n'
+        sys_message += f"\tОбъем: {usage.total / (1024**3):.2f} GB\n\tИспользовано: {usage.used / (1024**3):.2f} GB\n\tСвободно: {usage.free / (1024**3):.2f} GB"
+
+    await message.answer(sys_message, reply_markup=keyboard)
 
 
 @dp.message_handler()
@@ -76,7 +89,7 @@ async def db_ok():
 
 
 async def db_failed():
-    await users.send_message(bot, 'Внимание сука! Произошел сбой в работе базы данных:')
+    await users.send_message(bot, 'Внимание! Произошел сбой в работе базы данных:')
 
 async def check_db_exec(_):
     asyncio.create_task(dbscript.checking_db(db_ok, db_failed))
