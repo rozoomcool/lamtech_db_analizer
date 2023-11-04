@@ -1,6 +1,5 @@
 from time import sleep
 from dotenv import dotenv_values
-import os
 
 import asyncpg
 
