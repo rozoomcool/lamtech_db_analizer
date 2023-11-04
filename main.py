@@ -59,7 +59,7 @@ async def send_welcome(message: types.Message):
 
 
 @dp.message_handler(lambda message: message.text == 'Перезагрузить БД')
-async def send_welcome(message: types.Message):
+async def restart_db_btn(message: types.Message):
     await users.send_message(bot, 'БД перезагружается, ждите')
     if(bench_requests.restart_db() != 200):
         await users.send_message(bot, 'Произошла непредвиденная ошибка')
@@ -92,17 +92,34 @@ async def logs_btn(message: types.Message):
 
 @dp.message_handler(lambda message: message.text == 'Легкое тестирование')
 async def easy_test_btn(message: types.Message):
-    await message.answer('easy_test')
+    await message.answer('Начинаю легкий тест...')
+    data = bench_requests.easy_test()
+    if(data['status'] != 200):
+        await message.answer('Произошла непредвиденная ошибка')
+    else:
+        await message.answer('Легкое тестирование прошло успешно')
+        await message.answer(data['body'])
 
 
 @dp.message_handler(lambda message: message.text == 'Тяжелое тестирование')
 async def hard_test_btn(message: types.Message):
-    await message.answer('hard_test')
+    await message.answer('Начинаю тяжелый тест...')
+    data = bench_requests.hard_test()
+    if(data['status'] != 200):
+        await message.answer('Тест провален')
+    else:
+        await message.answer('Тяжелое тестирование прошло успешно')
+        await message.answer(data['body'])
 
 
 @dp.message_handler(lambda message: message.text == 'Реально крашнуть базу данных!')
 async def crush_btn(message: types.Message):
-    await message.answer('crush_db')
+    await message.answer('Убиваем БД, ждите')
+    if(bench_requests.crush_db() != 200):
+        await message.answer('Произошла непредвиденная ошибка')
+    else:
+        await message.answer('БД убита')
+
 
 
 @dp.message_handler()
