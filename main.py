@@ -13,6 +13,7 @@ import bench_requests
 import analyzer.slow_query
 import logs.logs
 import utils.backup
+import charts.generator
 
 # TODO: errors handler
 
@@ -27,7 +28,8 @@ keyboard.add(
     types.InlineKeyboardButton(text='Проверить работу БД'),
     types.InlineKeyboardButton(text='Информация о системе'),
     types.InlineKeyboardButton(text='Перезагрузить БД'),
-    types.InlineKeyboardButton(text='Вывод логов'),
+    types.InlineKeyboardButton(text='Получить логи'),
+    types.InlineKeyboardButton(text='Сгенерировать графики'),
     types.InlineKeyboardButton(text='Тестирование'),
     types.InlineKeyboardButton(text='Проверить время выполнения запросов'),
     types.InlineKeyboardButton(text='Сделать бэкап бд'),
@@ -100,12 +102,29 @@ async def server_info(message: types.Message):
     await message.answer(sys_message, reply_markup=keyboard)
 
 
-@dp.message_handler(lambda message: message.text == 'Вывод логов')
+@dp.message_handler(lambda message: message.text == 'Получить логи')
 async def logs_btn(message: types.Message):
     file = logs.logs.gen_logs()
     with open (f"./{file}", "rb") as log_file:
         await bot.send_document(chat_id=message.chat.id, document=log_file)
 
+
+@dp.message_handler(lambda message: message.text == 'Сгенерировать графики')
+async def chart_btn(message: types.Message):
+    charts.generator.get_general(charts.generator.get_conn())
+    charts.generator.get_tables_stat(charts.generator.get_conn())
+    charts.generator.get_indexes_stat(charts.generator.get_conn())
+
+    gen_charts = [
+        'Занятое_и_свободное_пространство_в_базе_данных.png',
+        'количества_сканирований_таблиц_(seq_scan)_и_записей_таблиц.png',
+        'статистики_по_индексам.png'
+    ]
+
+    await message.answer('Начинаю генерировать графики...')
+    for chart in gen_charts:
+        with open (f"./charts/{chart}", "rb") as chart:
+            await bot.send_document(chat_id=message.chat.id, document=chart)
 
 
 @dp.message_handler(lambda message: message.text == 'Тестирование')
