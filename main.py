@@ -148,7 +148,7 @@ async def hard_test_btn(message: types.Message):
     res = analyzer.slow_query.check_query_time(analyzer.slow_query.get_conn(), data)
     for table in res:
         query_execute_time = 'Медленно' if float(res[table]['execution_time']) >= 2 else 'Быстро' # итоговая оценка скорость выполнения запроса
-        await message.answer(f"Таблица: {table} \n Запрос: ```sql f{res[table]['executed_query']} ``` \n Ожидаемое время выполнения запроса: {res[table]['planning_time']} мл \n Время выполнения запроса: {res[table]['execution_time']} мл \n Итоговая оценка скорость выполнения запроса(время в 2 миллисекунды используются для примера): {query_execute_time}")
+        await message.answer(f"Таблица: {table} \n Запрос: ```sql {res[table]['executed_query']} ``` \n Ожидаемое время выполнения запроса: {res[table]['planning_time']} мл \n Время выполнения запроса: {res[table]['execution_time']} мл \n Итоговая оценка скорость выполнения запроса(время в 2 миллисекунды используются для примера): {query_execute_time}")
 
 
 @dp.message_handler(lambda message: message.text == 'Сделать бэкап бд')
