@@ -12,6 +12,7 @@ from dotenv import dotenv_values
 import bench_requests
 import analyzer.slow_query
 import logs.logs
+import utils.backup
 
 # TODO: errors handler
 
@@ -23,12 +24,14 @@ dp = Dispatcher(bot)
 
 keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
 keyboard.add(
-    types.InlineKeyboardButton(text='Проверить работу сервера'),
+    types.InlineKeyboardButton(text='Проверить работу БД'),
     types.InlineKeyboardButton(text='Информация о системе'),
     types.InlineKeyboardButton(text='Перезагрузить БД'),
     types.InlineKeyboardButton(text='Вывод логов'),
     types.InlineKeyboardButton(text='Тестирование'),
     types.InlineKeyboardButton(text='Проверить время выполнения запросов'),
+    types.InlineKeyboardButton(text='Сделать бэкап бд'),
+    types.InlineKeyboardButton(text='Востановить бд из бэкапа'),
 )
 
 
@@ -128,6 +131,18 @@ async def hard_test_btn(message: types.Message):
         query_execute_time = 'Медленно' if float(res[table]['execution_time']) >= 2 else 'Быстро' # итоговая оценка скорость выполнения запроса
         await message.answer(f"Таблица: {table} \n Запрос: ```sql f{res[table]['executed_query']} ``` \n Ожидаемое время выполнения запроса: {res[table]['planning_time']} мл \n Время выполнения запроса: {res[table]['execution_time']} мл \n Итоговая оценка скорость выполнения запроса(время в 2 миллисекунды используются для примера): {query_execute_time}")
 
+
+@dp.message_handler(lambda message: message.text == 'Сделать бэкап бд')
+async def backup_btn(message: types.Message):
+    await message.answer('Начинаю бэкап...')
+    r = utils.backup.backup_db()
+    await message.answer(r)
+
+@dp.message_handler(lambda message: message.text == 'Востановить бд из бэкапа')
+async def restore_btn(message: types.Message):
+    await message.answer('Начинаю восстановление...')
+    r = utils.backup.restore_db()
+    await message.answer(r)
 
 async def db_ok():
     await users.send_message(bot, 'База данных работает в штатном режиме')
